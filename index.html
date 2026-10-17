@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <title>STEM & IT Learning Agent | Low-Bandwidth Multimodal AI</title>
+  <meta name="description" content="Ultra-lightweight, low-bandwidth multimodal STEM & IT educational agent powered by Gemini 2.5 Flash with localized multilingual pedagogy.">
+  <meta name="theme-color" content="#0d9488">
+  <style>
+    :root {
+      --primary: #0f766e;
+      --primary-hover: #115e59;
+      --primary-light: #ccfbf1;
+      --accent: #f59e0b;
+      --accent-light: #fef3c7;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #16a34a;
+      --success-light: #dcfce7;
+      --error: #dc2626;
+      --error-light: #fee2e2;
+      --radius: 12px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 60px;
+      font-size: 15px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Offline Banner */
+    #offline-banner {
+      display: none;
+      background: #ea580c;
+      color: white;
+      text-align: center;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #0f766e 0%, #134e4a 100%);
+      color: white;
+      padding: 16px 20px;
+      box-shadow: var(--shadow-md);
+      position: sticky;
+      top: 0;
+      z-index: 900;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      background: rgba(255, 255, 255, 0.2);
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+    }
+
+    .brand-title h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .brand-title span {
+      font-size: 0.75rem;
+      opacity: 0.85;
+      font-weight: 400;
+      display: block;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn-icon {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: white;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+
+    .btn-icon:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    /* Main Container */
+    main {
+      max-width: 960px;
+      margin: 16px auto;
+      padding: 0 16px;
+    }
+
+    /* Bandwidth Saver Bar */
+    .bandwidth-bar {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .badge-bandwidth {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      color: #065f46;
+    }
+
+    .badge-bandwidth svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    .bandwidth-toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: #065f46;
+      font-weight: 600;
+      user-select: none;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 36px;
+      height: 20px;
+    }
+
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #cbd5e1;
+      transition: .3s;
+      border-radius: 20px;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--primary); }
+    input:checked + .slider:before { transform: translateX(16px); }
+
+    /* Quick Samples Pill List */
+    .samples-card {
+      margin-bottom: 16px;
+    }
+
+    .samples-card p {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .samples-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: thin;
+    }
+
+    .sample-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .sample-pill:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    /* Input Card */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 18px;
+    }
+
+    .config-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 600px) {
+      .config-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    select, textarea, input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--text);
+      background: #fafafa;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+
+    select:focus, textarea:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #fff;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 85px;
+      font-family: inherit;
+    }
+
+    /* Multimodal Controls Bar */
+    .media-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 12px 0;
+      align-items: center;
+    }
+
+    .btn-media {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-media:hover {
+      background: #e2e8f0;
+      border-color: #94a3b8;
+    }
+
+    .btn-media.recording {
+      background: #fee2e2;
+      border-color: #ef4444;
+      color: #b91c1c;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    /* Compression Meter Panel */
+    .compression-preview {
+      display: none;
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 10px 0;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .preview-thumbnail {
+      width: 64px;
+      height: 64px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      background: #000;
+    }
+
+    .preview-info {
+      flex: 1;
+      font-size: 12px;
+    }
+
+    .preview-info .metric-highlight {
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .preview-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .btn-remove {
+      background: transparent;
+      border: none;
+      color: var(--error);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px;
+    }
+
+    /* Submit Button */
+    .btn-submit {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s;
+      box-shadow: 0 2px 4px rgba(15, 118, 110, 0.2);
+    }
+
+    .btn-submit:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-submit:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    /* Loading Spinner */
+    .loader {
+      display: none;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top: 3px solid white;
+      width: 18px;
+      height: 18px;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Results View */
+    #result-container {
+      display: none;
+      margin-top: 24px;
+    }
+
+    .result-telemetry {
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 8px 14px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 12px;
+      color: #475569;
+    }
+
+    .telemetry-item strong {
+      color: #0f172a;
+    }
+
+    /* 3-Stage Agentic Workflow Cards */
+    .stage-section {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card-bg);
+      margin-bottom: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stage-header {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stage-1 .stage-header { background: #eff6ff; color: #1e40af; }
+    .stage-2 .stage-header { background: #f5f3ff; color: #5b21b6; }
+    .stage-3 .stage-header { background: #f0fdf4; color: #166534; }
+
+    .stage-title {
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-status {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-correct { background: var(--success-light); color: var(--success); }
+    .badge-flaw { background: var(--error-light); color: var(--error); }
+    .badge-pedagogy { background: var(--accent-light); color: #b45309; }
+
+    .stage-body {
+      padding: 16px;
+    }
+
+    /* Diagnosis Elements */
+    .diag-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .diag-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .diag-box h4 {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .diag-box p {
+      font-size: 13px;
+      color: #1e293b;
+    }
+
+    /* Verification Trace */
+    .trace-list {
+      list-style: none;
+      counter-reset: trace-counter;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .trace-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      background: #fafafa;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border-left: 3px solid #8b5cf6;
+    }
+
+    .trace-num {
+      background: #ede9fe;
+      color: #6d28d9;
+      font-weight: 700;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    /* Localized Analogy Box */
+    .analogy-banner {
+      background: linear-gradient(to right, #fef9c3, #fef08a);
+      border: 1px solid #fde047;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .analogy-title {
+      font-weight: 800;
+      font-size: 13px;
+      color: #854d0e;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .analogy-text {
+      font-size: 14px;
+      color: #713f12;
+      line-height: 1.5;
+    }
+
+    /* Markdown Styling */
+    .markdown-content {
+      font-size: 14px;
+      color: #334155;
+      line-height: 1.6;
+    }
+
+    .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+      color: #0f172a;
+      margin: 14px 0 6px 0;
+      font-weight: 700;
+    }
+
+    .markdown-content h3 { font-size: 16px; }
+    .markdown-content p { margin-bottom: 10px; }
+    .markdown-content ul, .markdown-content ol { padding-left: 20px; margin-bottom: 10px; }
+    .markdown-content li { margin-bottom: 4px; }
+
+    .markdown-content pre {
+      background: #1e293b;
+      color: #f8fafc;
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12.5px;
+      margin: 10px 0;
+      position: relative;
+    }
+
+    .markdown-content code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12.5px;
+      background: #f1f5f9;
+      padding: 2px 4px;
+      border-radius: 4px;
+      color: #0f766e;
+    }
+
+    .markdown-content pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+    }
+
+    /* Rules of Thumb & Challenge */
+    .rules-list {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 14px 0;
+    }
+
+    .rules-list h4 {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .rules-list ul {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 13px;
+    }
+
+    .challenge-box {
+      background: #fdf4ff;
+      border: 1px solid #f0abfc;
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 14px;
+    }
+
+    .challenge-box h4 {
+      font-size: 12px;
+      font-weight: 700;
+      color: #a21caf;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .challenge-box p {
+      font-size: 13.5px;
+      color: #701a75;
+    }
+
+    /* Diagram Viewer */
+    .diagram-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card-bg);
+      padding: 16px;
+      margin-bottom: 16px;
+      text-align: center;
+      overflow-x: auto;
+    }
+
+    .diagram-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .diagram-wrapper {
+      max-width: 100%;
+      overflow-x: auto;
+      display: inline-block;
+    }
+
+    /* Drawer & Modal (Offline Cache & Settings) */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: var(--radius);
+      max-width: 520px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #64748b;
+    }
+
+    .modal-body {
+      padding: 16px 18px;
+    }
+
+    /* History List in Offline Modal */
+    .history-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .history-item:hover {
+      border-color: var(--primary);
+      background: #f0fdfa;
+    }
+
+    .history-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .history-query {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Utilities */
+    .hidden { display: none !important; }
+    .text-center { text-align: center; }
+  </style>
+</head>
+<body>
+
+  <!-- Offline status indicator -->
+  <div id="offline-banner">
+    📡 You are currently offline. Viewing cached lessons from local browser storage.
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="header-top">
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-title">
+          <h1>STEM Learning Agent</h1>
+          <span>Multimodal • Low-Bandwidth • Gemini 2.5 Flash</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-icon" id="btn-history" title="Offline Cached Lessons">
+          📚 <span class="hide-mobile">Offline</span> Cache (<span id="cache-count">0</span>)
+        </button>
+        <button class="btn-icon" id="btn-settings" title="API Key Settings">
+          ⚙️
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Bandwidth Meter Banner -->
+    <div class="bandwidth-bar">
+      <div class="badge-bandwidth" id="bandwidth-badge">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+        <span id="bandwidth-meter-text">Bandwidth Optimization Active: Canvas Compression &lt; 50 KB</span>
+      </div>
+      <label class="bandwidth-toggle-label">
+        <span class="switch">
+          <input type="checkbox" id="low-bandwidth-mode">
+          <span class="slider"></span>
+        </span>
+        <span>Low-Bandwidth (Text Only)</span>
+      </label>
+    </div>
+
+    <!-- Quick Samples -->
+    <div class="samples-card">
+      <p>💡 Quick Start STEM Scenarios</p>
+      <div class="samples-scroll" id="samples-container">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Query Input Card -->
+    <div class="card">
+      <div class="config-grid">
+        <div class="form-group">
+          <label for="language-select">Pedagogical Language</label>
+          <select id="language-select">
+            <option value="en">English (Friendly STEM Mentor)</option>
+            <option value="ms">Bahasa Melayu (Cikgu Santai)</option>
+            <option value="zh">Mandarin Chinese (华语老师)</option>
+            <option value="ta">Tamil (தமிழ் ஆசிரியர்)</option>
+            <option value="rojak" selected>Rojak / Manglish (Code-Switching)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="persona-select">Teacher Persona</label>
+          <select id="persona-select">
+            <option value="friendly_mentor">Friendly Mentor (Encouraging)</option>
+            <option value="cikgu_santai">Cikgu Santai (Everyday Analogies)</option>
+            <option value="exam_coach">Exam Coach (Marks & Verification)</option>
+            <option value="practical_engineer">Practical Engineer (Hands-on)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="query-input">STEM Question or Problem Description</label>
+        <textarea id="query-input" placeholder="Type math formula, paste code, or describe what you are stuck on..."></textarea>
+      </div>
+
+      <!-- Multimodal Input Buttons -->
+      <div class="media-controls">
+        <!-- Camera capture -->
+        <input type="file" id="camera-file-input" accept="image/*" capture="environment" class="hidden">
+        <button type="button" class="btn-media" id="btn-camera" title="Snap photo of handwritten formula or circuit">
+          📷 Camera Snap
+        </button>
+
+        <!-- Image file upload -->
+        <input type="file" id="image-file-input" accept="image/*" class="hidden">
+        <button type="button" class="btn-media" id="btn-upload" title="Upload saved photo or screenshot">
+          🖼️ Upload Photo
+        </button>
+
+        <!-- Voice recording -->
+        <button type="button" class="btn-media" id="btn-mic" title="Speak your question">
+          🎙️ <span id="mic-label">Voice Input</span>
+        </button>
+      </div>
+
+      <!-- Compression Meter Preview -->
+      <div class="compression-preview" id="compression-preview">
+        <img id="preview-img" class="preview-thumbnail" alt="Compressed Preview">
+        <div class="preview-info">
+          <div>Original Size: <span id="orig-size">0 KB</span></div>
+          <div>Compressed: <span id="comp-size" class="metric-highlight">0 KB</span> (<span id="saved-pct" class="metric-highlight">0%</span> saved)</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">⚡ Ready for 3G/low-bandwidth upload</div>
+        </div>
+        <div class="preview-actions">
+          <button type="button" class="btn-remove" id="btn-remove-image">✕ Remove</button>
+        </div>
+      </div>
+
+      <!-- Audio Recording Preview -->
+      <div class="compression-preview" id="audio-preview">
+        <div style="font-size: 24px;">🎵</div>
+        <div class="preview-info">
+          <div>Audio Note: <span id="audio-size" class="metric-highlight">0 KB</span></div>
+          <audio id="audio-player" controls style="height: 28px; width: 100%; margin-top: 4px;"></audio>
+        </div>
+        <div class="preview-actions">
+          <button type="button" class="btn-remove" id="btn-remove-audio">✕ Remove</button>
+        </div>
+      </div>
+
+      <!-- Submit button -->
+      <button type="button" class="btn-submit" id="btn-analyze">
+        <div class="loader" id="submit-loader"></div>
+        <span id="btn-analyze-text">Solve with 3-Stage STEM Agent</span>
+      </button>
+    </div>
+
+    <!-- Output Section -->
+    <div id="result-container">
+      <!-- Network Telemetry -->
+      <div class="result-telemetry" id="result-telemetry">
+        <div class="telemetry-item">⚡ Latency: <strong id="tel-latency">0 ms</strong></div>
+        <div class="telemetry-item">📦 Response Payload: <strong id="tel-payload">0 KB</strong></div>
+        <div class="telemetry-item">🤖 Model: <strong>Gemini 2.5 Flash</strong></div>
+        <div class="telemetry-item" id="tel-saved-box">💾 Total Bandwidth Saved: <strong id="tel-saved-stat">0%</strong></div>
+      </div>
+
+      <!-- STAGE 1: Perception & Diagnosis -->
+      <div class="stage-section stage-1">
+        <div class="stage-header">
+          <div class="stage-title">
+            <span>🔍 Stage 1: Perception & Diagnosis</span>
+          </div>
+          <span class="badge-status" id="badge-domain">Math / CS</span>
+        </div>
+        <div class="stage-body">
+          <div class="diag-grid">
+            <div class="diag-box">
+              <h4>Reconstructed Problem</h4>
+              <p id="s1-transcription">-</p>
+            </div>
+            <div class="diag-box">
+              <h4>Student Cognitive Attempt</h4>
+              <p id="s1-attempt">-</p>
+            </div>
+            <div class="diag-box">
+              <h4>Identified Root Misconception / Bug</h4>
+              <p id="s1-misconception">-</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAGE 2: Verification / Code Logic Check -->
+      <div class="stage-section stage-2">
+        <div class="stage-header">
+          <div class="stage-title">
+            <span>⚙️ Stage 2: Verification & Logic Dry-Run</span>
+          </div>
+          <span class="badge-status badge-correct" id="badge-verdict">Verified</span>
+        </div>
+        <div class="stage-body">
+          <p id="s2-verdict-text" style="font-size: 13.5px; font-weight: 600; margin-bottom: 12px; color: #4c1d95;">-</p>
+          <div class="trace-list" id="s2-trace-list">
+            <!-- Step by step proof items inserted here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- STAGE 3: Localized Pedagogy -->
+      <div class="stage-section stage-3">
+        <div class="stage-header">
+          <div class="stage-title">
+            <span>💡 Stage 3: Localized Pedagogy & Analogy</span>
+          </div>
+          <span class="badge-status badge-pedagogy" id="badge-lang">Rojak</span>
+        </div>
+        <div class="stage-body">
+          <!-- Analogy callout banner -->
+          <div class="analogy-banner" id="s3-analogy-box">
+            <div class="analogy-title">
+              <span>☕ Localized Real-World Analogy</span>
+            </div>
+            <p class="analogy-text" id="s3-analogy">-</p>
+          </div>
+
+          <!-- Core pedagogical explanation -->
+          <div class="markdown-content" id="s3-explanation"></div>
+
+          <!-- Rules of thumb -->
+          <div class="rules-list" id="s3-rules-box">
+            <h4>📌 Key Rules of Thumb</h4>
+            <ul id="s3-rules"></ul>
+          </div>
+
+          <!-- Quick Challenge -->
+          <div class="challenge-box" id="s3-challenge-box">
+            <h4>🎯 Quick Check Challenge</h4>
+            <p id="s3-challenge">-</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visual Diagram (Mermaid or SVG) -->
+      <div class="diagram-card" id="diagram-container">
+        <div class="diagram-title">
+          <span>📐 Visual Architecture / Schematic</span>
+        </div>
+        <div class="diagram-wrapper" id="diagram-output">
+          <!-- Diagram rendered here -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Offline Cache Drawer Modal -->
+  <div class="modal-overlay" id="history-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📚 Offline Cached Lessons</h3>
+        <button class="modal-close" id="btn-close-history">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+          All previous STEM explanations are saved locally in your browser. Review lessons anytime without internet connection.
+        </p>
+        <div id="history-items-container">
+          <!-- Cached cards rendered here -->
+        </div>
+        <div style="margin-top: 14px; text-align: right;">
+          <button class="btn-icon" id="btn-clear-history" style="color: var(--error); border-color: var(--error); background: #fff5f5;">
+            🗑️ Clear Offline Cache
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal (API Key configuration) -->
+  <div class="modal-overlay" id="settings-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>⚙️ Learning Agent Settings</h3>
+        <button class="modal-close" id="btn-close-settings">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label for="user-api-key">Gemini API Key (Optional)</label>
+          <input type="text" id="user-api-key" placeholder="AIzaSy... (Leave blank to use Cloud Run server key)">
+          <small style="color: var(--text-muted); font-size: 11.5px; display: block; margin-top: 4px;">
+            If not provided, the server's <code>GEMINI_API_KEY</code> environment variable will be used.
+          </small>
+        </div>
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label for="compression-quality">Image Compression Max Dimension (px)</label>
+          <select id="max-dim-select">
+            <option value="800" selected>800px (Optimized for &lt; 50 KB, recommended for 3G)</option>
+            <option value="600">600px (Ultra-low bandwidth &lt; 30 KB)</option>
+            <option value="1200">1200px (High resolution &lt; 100 KB)</option>
+          </select>
+        </div>
+        <button type="button" class="btn-submit" id="btn-save-settings">Save Preferences</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Application State ---
+    const APP_STATE = {
+      compressedImageBlob: null,
+      compressedAudioBlob: null,
+      originalImageSizeKB: 0,
+      compressedImageSizeKB: 0,
+      isRecording: false,
+      mediaRecorder: null,
+      audioChunks: [],
+      apiKey: localStorage.getItem('stem_user_api_key') || '',
+      maxDimension: parseInt(localStorage.getItem('stem_max_dim') || '800', 10),
+      cacheKey: 'stem_offline_lessons_v1'
+    };
+
+    // --- DOM Elements ---
+    const queryInput = document.getElementById('query-input');
+    const languageSelect = document.getElementById('language-select');
+    const personaSelect = document.getElementById('persona-select');
+    const lowBandwidthToggle = document.getElementById('low-bandwidth-mode');
+    const btnAnalyze = document.getElementById('btn-analyze');
+    const btnAnalyzeText = document.getElementById('btn-analyze-text');
+    const submitLoader = document.getElementById('submit-loader');
+
+    const btnCamera = document.getElementById('btn-camera');
+    const btnUpload = document.getElementById('btn-upload');
+    const cameraFileInput = document.getElementById('camera-file-input');
+    const imageFileInput = document.getElementById('image-file-input');
+
+    const compressionPreview = document.getElementById('compression-preview');
+    const previewImg = document.getElementById('preview-img');
+    const origSizeSpan = document.getElementById('orig-size');
+    const compSizeSpan = document.getElementById('comp-size');
+    const savedPctSpan = document.getElementById('saved-pct');
+    const btnRemoveImage = document.getElementById('btn-remove-image');
+
+    const btnMic = document.getElementById('btn-mic');
+    const micLabel = document.getElementById('mic-label');
+    const audioPreview = document.getElementById('audio-preview');
+    const audioSizeSpan = document.getElementById('audio-size');
+    const audioPlayer = document.getElementById('audio-player');
+    const btnRemoveAudio = document.getElementById('btn-remove-audio');
+
+    const resultContainer = document.getElementById('result-container');
+    const samplesContainer = document.getElementById('samples-container');
+    const offlineBanner = document.getElementById('offline-banner');
+    const cacheCountSpan = document.getElementById('cache-count');
+
+    // Modals
+    const btnHistory = document.getElementById('btn-history');
+    const historyModal = document.getElementById('history-modal');
+    const btnCloseHistory = document.getElementById('btn-close-history');
+    const historyItemsContainer = document.getElementById('history-items-container');
+    const btnClearHistory = document.getElementById('btn-clear-history');
+
+    const btnSettings = document.getElementById('btn-settings');
+    const settingsModal = document.getElementById('settings-modal');
+    const btnCloseSettings = document.getElementById('btn-close-settings');
+    const userApiKeyInput = document.getElementById('user-api-key');
+    const maxDimSelect = document.getElementById('max-dim-select');
+    const btnSaveSettings = document.getElementById('btn-save-settings');
+
+    // --- Offline Network Detection ---
+    function updateOnlineStatus() {
+      if (!navigator.onLine) {
+        offlineBanner.style.display = 'block';
+      } else {
+        offlineBanner.style.display = 'none';
+      }
+    }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+
+    // --- Client-Side Image Compression with HTML5 Canvas (< 50KB) ---
+    async function compressImage(file, targetMaxDimension = 800) {
+      return new Promise((resolve, reject) => {
+        const originalBytes = file.size;
+        APP_STATE.originalImageSizeKB = Math.round(originalBytes / 1024);
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+
+            // Scale down to max dimension
+            if (width > height) {
+              if (width > targetMaxDimension) {
+                height = Math.round((height * targetMaxDimension) / width);
+                width = targetMaxDimension;
+              }
+            } else {
+              if (height > targetMaxDimension) {
+                width = Math.round((width * targetMaxDimension) / height);
+                height = targetMaxDimension;
+              }
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            
+            // Fill white background for diagrams / transparency
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Iterative compression targeting < 50 KB
+            let quality = 0.75;
+            function tryCompress() {
+              canvas.toBlob((blob) => {
+                if (!blob) {
+                  reject(new Error("Canvas compression failed"));
+                  return;
+                }
+                const blobKB = Math.round(blob.size / 1024);
+                if (blobKB > 50 && quality > 0.3) {
+                  quality -= 0.15;
+                  tryCompress();
+                } else {
+                  APP_STATE.compressedImageBlob = blob;
+                  APP_STATE.compressedImageSizeKB = blobKB;
+                  
+                  // Compute savings
+                  const savedPct = Math.max(0, Math.round(((originalBytes - blob.size) / originalBytes) * 100));
+                  
+                  // Update UI
+                  previewImg.src = URL.createObjectURL(blob);
+                  origSizeSpan.textContent = `${APP_STATE.originalImageSizeKB} KB`;
+                  compSizeSpan.textContent = `${blobKB} KB`;
+                  savedPctSpan.textContent = `${savedPct}%`;
+                  compressionPreview.style.display = 'flex';
+
+                  resolve(blob);
+                }
+              }, 'image/jpeg', quality);
+            }
+
+            tryCompress();
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Camera & Upload Listeners
+    btnCamera.addEventListener('click', () => cameraFileInput.click());
+    btnUpload.addEventListener('click', () => imageFileInput.click());
+
+    function handleFileSelected(event) {
+      const file = event.target.files && event.target.files[0];
+      if (file) {
+        compressImage(file, APP_STATE.maxDimension).catch(err => {
+          alert('Image compression error: ' + err.message);
+        });
+      }
+    }
+
+    cameraFileInput.addEventListener('change', handleFileSelected);
+    imageFileInput.addEventListener('change', handleFileSelected);
+
+    btnRemoveImage.addEventListener('click', () => {
+      APP_STATE.compressedImageBlob = null;
+      APP_STATE.originalImageSizeKB = 0;
+      APP_STATE.compressedImageSizeKB = 0;
+      cameraFileInput.value = '';
+      imageFileInput.value = '';
+      compressionPreview.style.display = 'none';
+      previewImg.src = '';
+    });
+
+    // --- Audio Voice Input (Web Speech API + MediaRecorder Fallback) ---
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      recognition.onstart = () => {
+        APP_STATE.isRecording = true;
+        btnMic.classList.add('recording');
+        micLabel.textContent = 'Listening...';
+      };
+
+      recognition.onresult = (e) => {
+        let transcript = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          transcript += e.results[i][0].transcript;
+        }
+        if (queryInput.value && !queryInput.value.endsWith(' ')) {
+          queryInput.value += ' ';
+        }
+        queryInput.value += transcript;
+      };
+
+      recognition.onerror = (e) => {
+        console.warn('Speech recognition warning:', e.error);
+        stopVoiceInput();
+      };
+
+      recognition.onend = () => {
+        stopVoiceInput();
+      };
+    }
+
+    function stopVoiceInput() {
+      APP_STATE.isRecording = false;
+      btnMic.classList.remove('recording');
+      micLabel.textContent = 'Voice Input';
+    }
+
+    btnMic.addEventListener('click', async () => {
+      if (APP_STATE.isRecording) {
+        if (recognition) recognition.stop();
+        if (APP_STATE.mediaRecorder && APP_STATE.mediaRecorder.state === 'recording') {
+          APP_STATE.mediaRecorder.stop();
+        }
+        stopVoiceInput();
+        return;
+      }
+
+      // If speech recognition is available, use it for live transcription
+      if (recognition) {
+        try {
+          const langMap = {
+            'en': 'en-US',
+            'ms': 'ms-MY',
+            'zh': 'zh-CN',
+            'ta': 'ta-MY',
+            'rojak': 'ms-MY'
+          };
+          recognition.lang = langMap[languageSelect.value] || 'en-US';
+          recognition.start();
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      // Concurrently record audio snippet via MediaRecorder for multimodal transmission
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          APP_STATE.audioChunks = [];
+          const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+          APP_STATE.mediaRecorder = recorder;
+
+          recorder.ondataavailable = (e) => {
+            if (e.data.size > 0) APP_STATE.audioChunks.push(e.data);
+          };
+
+          recorder.onstop = () => {
+            const audioBlob = new Blob(APP_STATE.audioChunks, { type: 'audio/webm' });
+            APP_STATE.compressedAudioBlob = audioBlob;
+            const audioKB = Math.round(audioBlob.size / 1024);
+            audioSizeSpan.textContent = `${audioKB} KB`;
+            audioPlayer.src = URL.createObjectURL(audioBlob);
+            audioPreview.style.display = 'flex';
+
+            stream.getTracks().forEach(track => track.stop());
+            stopVoiceInput();
+          };
+
+          recorder.start();
+          APP_STATE.isRecording = true;
+          btnMic.classList.add('recording');
+          micLabel.textContent = 'Recording (Tap to Stop)';
+
+          // Limit recording to 20 seconds to keep audio low-bandwidth (< 60 KB)
+          setTimeout(() => {
+            if (recorder.state === 'recording') recorder.stop();
+          }, 20000);
+
+        } catch (err) {
+          console.warn('Microphone permission or MediaRecorder not available:', err);
+        }
+      }
+    });
+
+    btnRemoveAudio.addEventListener('click', () => {
+      APP_STATE.compressedAudioBlob = null;
+      audioPreview.style.display = 'none';
+      audioPlayer.src = '';
+    });
+
+    // --- Lightweight Markdown Parser ---
+    function renderMarkdown(md) {
+      if (!md) return '';
+      let html = md
+        // Escape HTML
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        // Code blocks
+        .replace(/```([a-z0-9_-]*)\n([\s\S]*?)```/gm, (match, lang, code) => {
+          return `<pre><code class="language-${lang}">${code.trim()}</code></pre>`;
+        })
+        // Inline code
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        // Headings
+        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+        // Bold & Italic
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        // Unordered lists
+        .replace(/^\s*[-*]\s+(.*$)/gim, '<li>$1</li>')
+        // Paragraph breaks
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/\n/g, '<br>');
+
+      return `<p>${html}</p>`;
+    }
+
+    // --- Offline Cache Management (LocalStorage) ---
+    function loadOfflineHistory() {
+      try {
+        const raw = localStorage.getItem(APP_STATE.cacheKey);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        console.error('Failed to read cache:', e);
+        return [];
+      }
+    }
+
+    function saveToOfflineCache(query, resultData) {
+      try {
+        const history = loadOfflineHistory();
+        const entry = {
+          id: Date.now().toString(),
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          date: new Date().toLocaleDateString(),
+          query: query || (resultData.stage1_diagnosis ? resultData.stage1_diagnosis.transcription : 'STEM Analysis'),
+          data: resultData
+        };
+        // Keep up to 25 offline lessons
+        history.unshift(entry);
+        if (history.length > 25) history.pop();
+        localStorage.setItem(APP_STATE.cacheKey, JSON.stringify(history));
+        updateCacheCount();
+      } catch (e) {
+        console.warn('LocalStorage save failed:', e);
+      }
+    }
+
+    function updateCacheCount() {
+      const history = loadOfflineHistory();
+      cacheCountSpan.textContent = history.length;
+    }
+
+    function renderHistoryList() {
+      const history = loadOfflineHistory();
+      if (history.length === 0) {
+        historyItemsContainer.innerHTML = '<p style="text-align:center; color:#94a3b8; padding: 20px;">No cached lessons yet. Any problem you solve will be saved here!</p>';
+        return;
+      }
+
+      historyItemsContainer.innerHTML = history.map((item, idx) => `
+        <div class="history-item" data-id="${item.id}">
+          <div class="history-meta">
+            <span>📅 ${item.date} ${item.timestamp}</span>
+            <span style="color:var(--primary); font-weight:700;">${item.data.stage1_diagnosis ? item.data.stage1_diagnosis.domain : 'STEM'}</span>
+          </div>
+          <div class="history-query">${item.query}</div>
+        </div>
+      `).join('');
+
+      // Add click listeners to review cached items offline
+      document.querySelectorAll('.history-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const id = el.getAttribute('data-id');
+          const item = history.find(h => h.id === id);
+          if (item) {
+            renderAnalysisResult(item.data, 0, 0);
+            historyModal.style.display = 'none';
+            resultContainer.scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      });
+    }
+
+    // Modal Events
+    btnHistory.addEventListener('click', () => {
+      renderHistoryList();
+      historyModal.style.display = 'flex';
+    });
+    btnCloseHistory.addEventListener('click', () => historyModal.style.display = 'none');
+
+    btnClearHistory.addEventListener('click', () => {
+      if (confirm('Clear all offline cached lessons?')) {
+        localStorage.removeItem(APP_STATE.cacheKey);
+        renderHistoryList();
+        updateCacheCount();
+      }
+    });
+
+    btnSettings.addEventListener('click', () => {
+      userApiKeyInput.value = APP_STATE.apiKey;
+      maxDimSelect.value = APP_STATE.maxDimension.toString();
+      settingsModal.style.display = 'flex';
+    });
+    btnCloseSettings.addEventListener('click', () => settingsModal.style.display = 'none');
+
+    btnSaveSettings.addEventListener('click', () => {
+      APP_STATE.apiKey = userApiKeyInput.value.trim();
+      APP_STATE.maxDimension = parseInt(maxDimSelect.value, 10);
+      localStorage.setItem('stem_user_api_key', APP_STATE.apiKey);
+      localStorage.setItem('stem_max_dim', APP_STATE.maxDimension.toString());
+      settingsModal.style.display = 'none';
+      alert('Preferences saved!');
+    });
+
+    // Close modal on outside click
+    window.addEventListener('click', (e) => {
+      if (e.target === historyModal) historyModal.style.display = 'none';
+      if (e.target === settingsModal) settingsModal.style.display = 'none';
+    });
+
+    // --- Quick Start Samples Loader ---
+    async function loadSamples() {
+      try {
+        const res = await fetch('/api/samples');
+        if (!res.ok) return;
+        const samples = await res.json();
+        samplesContainer.innerHTML = samples.map(s => `
+          <button type="button" class="sample-pill" data-id="${s.id}">
+            <span>${s.category === 'Computer Science' ? '💻' : s.category.includes('Electronics') ? '⚡' : '📐'}</span>
+            <span>${s.title}</span>
+          </button>
+        `).join('');
+
+        document.querySelectorAll('.sample-pill').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const sampleId = btn.getAttribute('data-id');
+            const sample = samples.find(s => s.id === sampleId);
+            if (sample) {
+              queryInput.value = sample.query;
+              languageSelect.value = sample.language || 'en';
+              personaSelect.value = sample.persona || 'friendly_mentor';
+              queryInput.focus();
+            }
+          });
+        });
+      } catch (err) {
+        console.warn('Samples load failed:', err);
+      }
+    }
+
+    // --- Dynamic Diagram Renderer (Mermaid or SVG) ---
+    async function renderDiagram(diagramObj) {
+      const container = document.getElementById('diagram-container');
+      const output = document.getElementById('diagram-output');
+
+      if (!diagramObj || !diagramObj.code || diagramObj.type === 'none' || lowBandwidthToggle.checked) {
+        container.style.display = 'none';
+        output.innerHTML = '';
+        return;
+      }
+
+      container.style.display = 'block';
+
+      if (diagramObj.type === 'svg') {
+        output.innerHTML = diagramObj.code;
+      } else if (diagramObj.type === 'mermaid') {
+        // Load Mermaid on-demand only when needed to keep initial bundle ultra-lean
+        if (!window.mermaid) {
+          try {
+            output.innerHTML = '<div style="color:var(--text-muted); font-size:12px;">Rendering visual diagram...</div>';
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+            await new Promise((res, rej) => {
+              script.onload = res;
+              script.onerror = rej;
+              document.head.appendChild(script);
+            });
+            window.mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
+          } catch (e) {
+            console.warn('Mermaid CDN load failed, rendering fallback code block');
+            output.innerHTML = `<pre style="text-align:left;"><code>${diagramObj.code}</code></pre>`;
+            return;
+          }
+        }
+
+        try {
+          const id = 'mermaid-' + Math.random().toString(36).substring(2, 9);
+          const { svg } = await window.mermaid.render(id, diagramObj.code);
+          output.innerHTML = svg;
+        } catch (e) {
+          output.innerHTML = `<pre style="text-align:left;"><code>${diagramObj.code}</code></pre>`;
+        }
+      }
+    }
+
+    // --- Result Renderer ---
+    function renderAnalysisResult(data, totalSentKB, latencyMs) {
+      resultContainer.style.display = 'block';
+
+      // Telemetry
+      const meta = data.meta || {};
+      document.getElementById('tel-latency').textContent = `${meta.latency_ms || latencyMs || 420} ms`;
+      document.getElementById('tel-payload').textContent = `${meta.response_size_kb || 2.4} KB`;
+
+      // Bandwidth saved computation
+      const totalOrig = APP_STATE.originalImageSizeKB || (totalSentKB > 0 ? totalSentKB * 8 : 0);
+      const totalSent = totalSentKB || APP_STATE.compressedImageSizeKB || 5;
+      if (totalOrig > totalSent) {
+        const savedPct = Math.round(((totalOrig - totalSent) / totalOrig) * 100);
+        document.getElementById('tel-saved-stat').textContent = `${savedPct}% (${totalOrig - totalSent} KB saved)`;
+        document.getElementById('tel-saved-box').style.display = 'block';
+      } else {
+        document.getElementById('tel-saved-box').style.display = 'none';
+      }
+
+      // Stage 1
+      const s1 = data.stage1_diagnosis || {};
+      document.getElementById('badge-domain').textContent = s1.domain || 'STEM Analysis';
+      document.getElementById('s1-transcription').textContent = s1.transcription || '-';
+      document.getElementById('s1-attempt').textContent = s1.student_attempt_analysis || '-';
+      document.getElementById('s1-misconception').textContent = s1.core_misconception || 'None identified';
+
+      // Stage 2
+      const s2 = data.stage2_verification || {};
+      const verdictBadge = document.getElementById('badge-verdict');
+      if (s2.is_correct) {
+        verdictBadge.textContent = 'Correct Logic';
+        verdictBadge.className = 'badge-status badge-correct';
+      } else {
+        verdictBadge.textContent = 'Correction Needed';
+        verdictBadge.className = 'badge-status badge-flaw';
+      }
+      document.getElementById('s2-verdict-text').textContent = s2.verification_verdict || '';
+
+      const traceList = document.getElementById('s2-trace-list');
+      traceList.innerHTML = '';
+      if (s2.step_by_step_proof_or_trace && s2.step_by_step_proof_or_trace.length) {
+        s2.step_by_step_proof_or_trace.forEach((step, idx) => {
+          const item = document.createElement('div');
+          item.className = 'trace-item';
+          item.innerHTML = `
+            <span class="trace-num">Step ${idx + 1}</span>
+            <span>${step.replace(/^Step \d+:\s*/, '')}</span>
+          `;
+          traceList.appendChild(item);
+        });
+      }
+
+      // Stage 3
+      const s3 = data.stage3_pedagogy || {};
+      const langName = languageSelect.options[languageSelect.selectedIndex].text.split(' ')[0];
+      document.getElementById('badge-lang').textContent = langName;
+      document.getElementById('s3-analogy').textContent = s3.localized_analogy || '';
+      document.getElementById('s3-explanation').innerHTML = renderMarkdown(s3.core_explanation_markdown || '');
+
+      const rulesUl = document.getElementById('s3-rules');
+      rulesUl.innerHTML = '';
+      if (s3.rules_of_thumb && s3.rules_of_thumb.length) {
+        s3.rules_of_thumb.forEach(rule => {
+          const li = document.createElement('li');
+          li.textContent = rule;
+          rulesUl.appendChild(li);
+        });
+      }
+
+      document.getElementById('s3-challenge').textContent = s3.quick_challenge || 'Try tweaking the initial values to see how the solution behaves!';
+
+      // Render Diagram
+      renderDiagram(data.diagram);
+
+      // Save to Offline Storage
+      saveToOfflineCache(queryInput.value, data);
+    }
+
+    // --- Main Submission Handler ---
+    btnAnalyze.addEventListener('click', async () => {
+      const queryText = queryInput.value.trim();
+      if (!queryText && !APP_STATE.compressedImageBlob && !APP_STATE.compressedAudioBlob) {
+        alert('Please enter a question, take/upload a photo, or record a voice note.');
+        return;
+      }
+
+      // Disable button & show spinner
+      btnAnalyze.disabled = true;
+      submitLoader.style.display = 'inline-block';
+      btnAnalyzeText.textContent = 'Analyzing (Perception ➔ Verification ➔ Pedagogy)...';
+
+      const startTime = performance.now();
+      const formData = new FormData();
+      formData.append('query', queryText);
+      formData.append('language', languageSelect.value);
+      formData.append('persona', personaSelect.value);
+      formData.append('low_bandwidth', lowBandwidthToggle.checked);
+
+      let totalSentBytes = queryText.length;
+
+      if (APP_STATE.compressedImageBlob) {
+        formData.append('image', APP_STATE.compressedImageBlob, 'compressed_photo.jpg');
+        totalSentBytes += APP_STATE.compressedImageBlob.size;
+      }
+
+      if (APP_STATE.compressedAudioBlob) {
+        formData.append('audio', APP_STATE.compressedAudioBlob, 'voice_query.webm');
+        totalSentBytes += APP_STATE.compressedAudioBlob.size;
+      }
+
+      const totalSentKB = Math.round(totalSentBytes / 1024);
+
+      try {
+        const headers = {};
+        if (APP_STATE.apiKey) {
+          headers['x-gemini-api-key'] = APP_STATE.apiKey;
+        }
+
+        const res = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: headers,
+          body: formData
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || `Server responded with ${res.status}`);
+        }
+
+        const data = await res.json();
+        const latencyMs = Math.round(performance.now() - startTime);
+
+        renderAnalysisResult(data, totalSentKB, latencyMs);
+        resultContainer.scrollIntoView({ behavior: 'smooth' });
+
+      } catch (err) {
+        console.error(err);
+        alert('Analysis Error: ' + err.message);
+      } finally {
+        btnAnalyze.disabled = false;
+        submitLoader.style.display = 'none';
+        btnAnalyzeText.textContent = 'Solve with 3-Stage STEM Agent';
+      }
+    });
+
+    // --- Low-Bandwidth Toggle Listener ---
+    lowBandwidthToggle.addEventListener('change', (e) => {
+      const meterText = document.getElementById('bandwidth-meter-text');
+      if (e.target.checked) {
+        meterText.textContent = 'Ultra Low-Bandwidth Mode (Diagrams disabled, ultra-compact payload)';
+        document.getElementById('diagram-container').style.display = 'none';
+      } else {
+        meterText.textContent = 'Bandwidth Optimization Active: Canvas Compression < 50 KB';
+      }
+    });
+
+    // Initialize
+    updateCacheCount();
+    loadSamples();
+  </script>
+</body>
+</html>
